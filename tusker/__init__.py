@@ -106,7 +106,7 @@ class Tusker:
             with migrations_engine.begin() as migrations_cursor:
                 self.log('Creating migrated schema...')
                 for filename in sorted(os.listdir(self.config.migrations.directory)):
-                    if not filename.endswith('.sql'):
+                    if not filename.endswith('.sql') or filename.endswith('.rollback.sql'):
                         continue
                     self.log('- {}'.format(filename))
                     filename = os.path.join(
