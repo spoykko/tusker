@@ -195,3 +195,13 @@ tusker diff database
 Tusker also needs to create temporary databases when diffing against the `schema`
 and/or `migrations`. The two databases are called `{dbname}_{timestamp}_schema`
 and `{dbname}_{timestamp}_migrations`.
+
+### Is it possible to control what DB schemas are considered
+
+Yes. Since 0.2.2 Tusker has had support for database.schema option that is passed to Migra.
+Passign a TOML Array to this option will make Tusker loop over the specified schemas.
+
+```toml
+[database]
+schema = ["public", "second"]
+```
