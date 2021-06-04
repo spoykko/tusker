@@ -129,15 +129,18 @@ class Tusker:
     def diff(self, source, target, with_privileges=False):
         self.log('Creating databases...')
         with self.mgr(source) as source, self.mgr(target) as target:
-            self.log('Diffing...')
-            migration = migra.Migration(
-                source,
-                target,
-                self.config.database.schema
-            )
-            migration.set_safety(False)
-            migration.add_all_changes(privileges=with_privileges)
-            return migration.sql
+            sql = []
+            for schema in self.config.database.schema:
+                self.log('Diffing {}...'.format(schema))
+                migration = migra.Migration(
+                    source,
+                    target,
+                    self.config.database.schema
+                )
+                migration.set_safety(False)
+                migration.add_all_changes(privileges=with_privileges)
+                sql.append(migration.sql)
+            return '\n'.join(sql)
 
     def check(self, backends, with_privileges=False):
         with ExitStack() as stack:
@@ -149,15 +152,16 @@ class Tusker:
                     source[0],
                     target[0]
                 ))
-                migration = migra.Migration(
-                    source[1],
-                    target[1],
-                    schema=self.config.database.schema
-                )
-                migration.set_safety(False)
-                migration.add_all_changes(privileges=with_privileges)
-                if migration.sql:
-                    return (source[0], target[0])
+                for schema in self.config.database.schema:
+                    migration = migra.Migration(
+                        source[1],
+                        target[1],
+                        schema=schema
+                    )
+                    migration.set_safety(False)
+                    migration.add_all_changes(privileges=with_privileges)
+                    if migration.sql:
+                        return (source[0], target[0])
         return None
 
     def clean(self):

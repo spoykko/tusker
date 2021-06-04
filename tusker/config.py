@@ -1,3 +1,4 @@
+import collections
 import os
 
 from psycopg2.extensions import parse_dsn
@@ -38,7 +39,11 @@ class ConfigReader:
             else:
                 return None
         value = self.data[name]
-        if not isinstance(value, type):
+        types = []
+        if isinstance(type, collections.Collection):
+            types.extend(type)
+        else: types.append(type)
+        if not any(map(lambda t: isinstance(value, t), types)):
             raise ConfigError.invalid(name, 'Not of type {}'.format(type))
         return value
 
@@ -73,7 +78,8 @@ class DatabaseConfig:
         self.dbname = data.get('dbname', str)
         self.user = data.get('user', str)
         self.password = data.get('password', str)
-        self.schema = data.get('schema', str)
+        schema = data.get('schema', [str, list])
+        self.schema = schema if isinstance(schema, list) else [schema]
 
     def __str__(self):
         return 'DatabaseConfig({!r})'.format(self.__dict__)
